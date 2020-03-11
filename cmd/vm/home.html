@@ -37,7 +37,8 @@
                     appendLog(item);
                 };
                 conn.onmessage = function (evt) {
-                    console.log(evt.data);
+                    // console.log(evt);
+                    // console.log(evt.data);
                     let msg = JSON.parse(evt.data);
                     if (msg.value.length > 0) {
                         measure.value = 'measure: ' + msg.value;

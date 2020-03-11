@@ -79,6 +79,7 @@ func (s *Server) Start() error {
 				continue
 			}
 			log.WithFields(logrus.Fields{
+				"read": n,
 				"data": string(buff[0:n]),
 			}).Debugf("found initial point=%d", idx)
 
@@ -95,7 +96,8 @@ func (s *Server) Start() error {
 			data = append(data, buff[i])
 			if buff[i] == NewLine {
 				if !bytes.Equal(s.lastValue, data) {
-					s.controller.hub.broadcast <- append([]byte("Measure: "), data...)
+					//s.controller.hub.broadcast <- append([]byte("Measure: "), data...)
+					s.controller.hub.broadcast <- NewMessage(nil, data).Marshal()
 
 					// Deep copy
 					s.lastValue = make([]byte, len(data))
