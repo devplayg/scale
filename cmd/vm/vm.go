@@ -16,7 +16,6 @@ func main() {
 		Debug: true,
 	}
 
-	//server:=scale.NewServer("ST, .,+0000721kg\r\n")
 	server := scale.NewServer()
 	engine := hippo.NewEngine(server, config)
 	if err := engine.Start(); err != nil {

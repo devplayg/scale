@@ -1,16 +1,19 @@
 package scale
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type Message struct {
-	Data  []byte
-	Value string
+	Body  string `json:"body"`
+	Value string `json:"value"`
 }
 
-func NewMessage(data []byte, value string) *Message {
+func NewMessage(body, value []byte) *Message {
 	return &Message{
-		Data:  data,
-		Value: value,
+		Body:  strings.TrimSpace(string(body)),
+		Value: strings.TrimSpace(string(value)),
 	}
 }
 

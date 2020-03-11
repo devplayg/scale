@@ -7,6 +7,7 @@
             var conn;
             var msg = document.getElementById("msg");
             var log = document.getElementById("log");
+            var measure = document.getElementById("measure");
 
             function appendLog(item) {
                 var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
@@ -36,12 +37,16 @@
                     appendLog(item);
                 };
                 conn.onmessage = function (evt) {
-                    var messages = evt.data.split('\n');
-                    for (var i = 0; i < messages.length; i++) {
-                        var item = document.createElement("div");
-                        item.innerText = messages[i];
-                        appendLog(item);
+                    console.log(evt.data);
+                    let msg = JSON.parse(evt.data);
+                    if (msg.value.length > 0) {
+                        measure.value = 'measure: ' + msg.value;
+                        return;
                     }
+
+                    var item = document.createElement("div");
+                    item.innerText = msg.body;
+                    appendLog(item);
                 };
             } else {
                 var item = document.createElement("div");
@@ -92,7 +97,8 @@
 <div id="log"></div>
 <form id="form">
     <input type="submit" value="Send" />
-    <input type="text" id="msg" size="64"/>
+    <input type="text" id="msg" size="20"/>
+    <input type="text" id="measure" size="25" value="measure: " readonly>
 </form>
 </body>
 </html>
