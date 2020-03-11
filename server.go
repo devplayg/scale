@@ -1,7 +1,7 @@
 package scale
 
 import (
-	"github.com/davecgh/go-spew/spew"
+	"bytes"
 	"github.com/devplayg/hippo"
 	"github.com/sirupsen/logrus"
 	"math/rand"
@@ -9,8 +9,12 @@ import (
 )
 
 var (
-	log *logrus.Logger
+	log           *logrus.Logger
+	sampleData    = []byte("ABCDEFGHIJKLMNOP\r\n")
+	sampleDataLen = len(sampleData)
 )
+
+//var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 const (
 	NewLine  byte = 0x0a
@@ -19,18 +23,16 @@ const (
 
 type Server struct {
 	hippo.Launcher // DO NOT REMOVE; Launcher links servers and engine each other.
-	sampleData     []byte
-	sampleDataLen  int
 	idx            int
 	initialized    bool
+	controller     *Controller
 }
 
-func NewServer(sampleData string) *Server {
-	b := []byte(sampleData)
+func NewServer() *Server {
+	//fmt.Println(byte(randomByte()))
+
 	return &Server{
-		sampleData:    b,
-		sampleDataLen: len(b),
-		idx:           rand.Intn(len(b)),
+		idx: rand.Intn(sampleDataLen),
 	}
 }
 
@@ -52,12 +54,22 @@ func NewServer(sampleData string) *Server {
 
 func (s *Server) Start() error {
 	log = s.Log
+	s.controller = NewController(":8000")
+	s.controller.Start()
 
-	log.Debugf("sample data length=%d", len(s.sampleData))
-
+	log.Debugf("sample data length=%d", len(sampleData))
 	buff := make([]byte, BuffSize)
 	data := make([]byte, 0)
-	var ui string
+	var ui []byte
+
+	go func() {
+		for {
+			if ui != nil {
+				ui[rand.Intn(5)] = byte(randomByte())
+				time.Sleep(5 * time.Second)
+			}
+		}
+	}()
 
 	for {
 		n, err := s.read(buff)
@@ -93,10 +105,17 @@ func (s *Server) Start() error {
 				//fmt.Printf("%v\n", data)
 				//spew.Dump(data)
 
-				if ui != string(data) {
-					spew.Dump(data)
-					ui = string(data)
+				if !bytes.Equal(ui, data) {
+					//spew.Dump(ui)
+					//spew.Dump(data)
+					s.controller.hub.broadcast <- append([]byte("Measure: "), data...)
+					// Deep copy
+					ui = make([]byte, len(data))
+					copy(ui, data)
 				}
+				//if ui != string(data) {
+				//if ui != string(data) {
+				//}
 				//spew.du
 				data = make([]byte, 0)
 				continue
@@ -122,38 +141,38 @@ func (s *Server) findInitialPoint(buff []byte) int {
 }
 
 func (s *Server) read(buff []byte) (int, error) {
-	count := rand.Intn(len(s.sampleData)) + 1
+	count := rand.Intn(len(sampleData)) + 1
 
 	for i := 0; i < count; i++ {
-		p := (i + s.idx) % s.sampleDataLen
+		p := (i + s.idx) % sampleDataLen
 
-		buff[i] = s.sampleData[p]
-		if s.sampleData[p] == NewLine {
+		buff[i] = sampleData[p]
+		if sampleData[p] == NewLine {
 			count = i + 1
-			s.idx = (s.idx + count) % s.sampleDataLen
+			s.idx = (s.idx + count) % sampleDataLen
 			return count, nil
 		}
 	}
 
-	s.idx = (s.idx + count) % s.sampleDataLen
+	s.idx = (s.idx + count) % sampleDataLen
 	return count, nil
 }
 
 func (s *Server) read2() []byte {
-	count := rand.Intn(len(s.sampleData)) + 1
+	count := rand.Intn(len(sampleData)) + 1
 	b := make([]byte, count)
 	for i := 0; i < count; i++ {
-		p := (i + s.idx) % s.sampleDataLen
+		p := (i + s.idx) % sampleDataLen
 
-		b[i] = s.sampleData[p]
-		if s.sampleData[p] == NewLine {
+		b[i] = sampleData[p]
+		if sampleData[p] == NewLine {
 			count = i + 1
-			s.idx = (s.idx + count) % s.sampleDataLen
+			s.idx = (s.idx + count) % sampleDataLen
 			return b[0:count]
 		}
 	}
 
-	s.idx = (s.idx + count) % s.sampleDataLen
+	s.idx = (s.idx + count) % sampleDataLen
 	return b
 }
 

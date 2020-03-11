@@ -17,8 +17,7 @@ func main() {
 	}
 
 	//server:=scale.NewServer("ST, .,+0000721kg\r\n")
-	//server:=scale.NewServer("ST, .,+0000721kg\r\n")
-	server := scale.NewServer("ABCDEFGHIJKLMNOP\r\n")
+	server := scale.NewServer()
 	engine := hippo.NewEngine(server, config)
 	if err := engine.Start(); err != nil {
 		panic(err)
